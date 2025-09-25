@@ -1,4 +1,4 @@
-package IT212prelims_Project;
+package IT212prelims_LecProject;
 
 import java.io.*;
 import java.util.Scanner;

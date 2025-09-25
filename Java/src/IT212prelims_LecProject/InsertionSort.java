@@ -1,4 +1,4 @@
-package IT212prelims_Project;
+package IT212prelims_LecProject;
 
 /**
  * Implements the Insertion Sort algorithm for sorting an array of integers.
