@@ -2,10 +2,55 @@ package IT212prelims_LabProject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.NoSuchElementException;
 
-// Separate Personal Details Panel Class
+// Updated Student Data Class using MyList
+class StudentData {
+    String userId = "2251234";
+    String accountName = "Lin Ling Xiao Lang Bao";
+    String dateRegistered = "July 21, 2020";
+    String accountType = "Student";
+
+    MyMap generalInfo;
+    MyMap contactInfo;
+    MyMap contactPersons;
+
+    public StudentData() {
+        generalInfo = new MyMap();
+        contactInfo = new MyMap();
+        contactPersons = new MyMap();
+
+        initializeDefaultData();
+    }
+
+    private void initializeDefaultData() {
+        // Initialize general information
+        generalInfo.put("Gender", "Non-Binary");
+        generalInfo.put("Birthday", "February 14, 2002");
+        generalInfo.put("Citizenship", "FILIPINO");
+        generalInfo.put("Religion", "BUDDHIST MONK");
+        generalInfo.put("Civil Status", "SINGLE");
+        generalInfo.put("Birthplace", "SHANGHAI CITY");
+        generalInfo.put("Nationality", "CHINESE");
+
+        // Initialize contact information
+        contactInfo.put("Home Address", "SIOPAO ST. SHANGHAI CITY, CHINA");
+        contactInfo.put("Home Telephone No", "N/A");
+        contactInfo.put("Baguio Address", "69 EAGLE CREST, BAKAKENG NORTE");
+        contactInfo.put("Baguio Telephone No", "N/A");
+        contactInfo.put("Cellphone No", "02502380572");
+        contactInfo.put("Email Address", "ilovesiopao123@gmail.com");
+
+        // Initialize contact persons
+        contactPersons.put("Father's Name", "Shen Rong");
+        contactPersons.put("Father's Occupation", "Dragon King");
+        contactPersons.put("Mother's Maiden Name", "Yao Yao");
+        contactPersons.put("Mother's Occupation", "Jade Empress");
+    }
+}
+
 class PersonalDetailsPanel extends JPanel {
     private StudentData studentData;
     private JPanel detailsPanel;
@@ -139,16 +184,24 @@ class PersonalDetailsPanel extends JPanel {
 
         // General Information Section
         personalDetailsView.add(createSectionHeader("GENERAL INFORMATION"));
-        for (Map.Entry<String, String> entry : studentData.generalInfo.entrySet()) {
-            personalDetailsView.add(createInfoFieldWithButtons(entry.getKey(), entry.getValue(), "general"));
+        Object[] generalEntries = studentData.generalInfo.entrySet();
+        for (Object obj : generalEntries) {
+            if (obj instanceof KeyValuePair) {
+                KeyValuePair entry = (KeyValuePair) obj;
+                personalDetailsView.add(createInfoFieldWithButtons(entry.getKey(), entry.getValue(), "general"));
+            }
         }
 
         personalDetailsView.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // Contact Information Section
         personalDetailsView.add(createSectionHeader("CONTACT INFORMATION"));
-        for (Map.Entry<String, String> entry : studentData.contactInfo.entrySet()) {
-            personalDetailsView.add(createInfoFieldWithButtons(entry.getKey(), entry.getValue(), "contact"));
+        Object[] contactEntries = studentData.contactInfo.entrySet();
+        for (Object obj : contactEntries) {
+            if (obj instanceof KeyValuePair) {
+                KeyValuePair entry = (KeyValuePair) obj;
+                personalDetailsView.add(createInfoFieldWithButtons(entry.getKey(), entry.getValue(), "contact"));
+            }
         }
 
         personalDetailsView.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -156,8 +209,12 @@ class PersonalDetailsPanel extends JPanel {
         // Contact Persons Section
         personalDetailsView.add(createSectionHeader("CONTACT PERSONS"));
         personalDetailsView.add(createSubSectionHeader("Parents"));
-        for (Map.Entry<String, String> entry : studentData.contactPersons.entrySet()) {
-            personalDetailsView.add(createInfoFieldWithButtons(entry.getKey(), entry.getValue(), "persons"));
+        Object[] personEntries = studentData.contactPersons.entrySet();
+        for (Object obj : personEntries) {
+            if (obj instanceof KeyValuePair) {
+                KeyValuePair entry = (KeyValuePair) obj;
+                personalDetailsView.add(createInfoFieldWithButtons(entry.getKey(), entry.getValue(), "persons"));
+            }
         }
 
         personalDetailsView.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -468,4 +525,3 @@ class PersonalDetailsPanel extends JPanel {
         }
     }
 }
-

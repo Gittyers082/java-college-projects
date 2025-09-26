@@ -5,13 +5,138 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.NoSuchElementException;
 
-// Medical Record Panel Class
-public class MedicalRecordPanel extends JPanel {
+
+class MedicalRecordData {
+    // Personal Information
+    public String lastName = "Lang Bao";
+    public String firstName = "Lin Ling";
+    public String middleName = "Xiao";
+    public String dateOfBirth = "February 14, 2002";
+    public String gender = "Non-Binary";
+    public String address = "SIOPAO ST. SHANGHAI CITY, CHINA";
+    public String contactNumber = "02502382057";
+    public String courseYear = "BMMA 2";
+
+    // Emergency Contact
+    public String emergencyName = "";
+    public String emergencyAddress = "";
+    public String emergencyContactNumber = "";
+
+    // Using MyMap (which uses MyLinkedList internally)
+    public MyMap allergies;
+    public MyMap pastMedicalHistory;
+    public MyLinkedList<String> childhoodDiseases;
+    public MyMap immunizations;
+    public MyLinkedList<ConsultationRecord> consultationRecords;
+
+    // Personal/Social History
+    public boolean isSmoker = false;
+    public String sticksPerDay = "0";
+    public boolean isDrinker = false;
+
+    // Others
+    public String specialMedications = "";
+    public String specialCare = "";
+    public String others = "";
+
+    public MedicalRecordData() {
+        // Initialize using MyList implementations
+        allergies = new MyMap();
+        pastMedicalHistory = new MyMap();
+        childhoodDiseases = new MyLinkedList<>();
+        immunizations = new MyMap();
+        consultationRecords = new MyLinkedList<>();
+
+        // Add some sample data
+        initializeSampleData();
+    }
+
+    private void initializeSampleData() {
+        try {
+            // Sample allergies
+            allergies.put("Peanuts", "Severe allergic reaction");
+            allergies.put("Dust", "Mild sneezing");
+
+            // Sample past medical history
+            pastMedicalHistory.put("Asthma", "Childhood asthma, treated with inhaler");
+
+            // Sample childhood diseases
+            childhoodDiseases.insert("Chicken Pox");
+            childhoodDiseases.insert("Measles");
+
+            // Sample immunizations
+            immunizations.put("BCG", "2005-09-15");
+            immunizations.put("Hepatitis B", "2005-10-08");
+            immunizations.put("DPT", "2005-11-08");
+
+            // Sample consultation record
+            ConsultationRecord record = new ConsultationRecord();
+            record.dateTime = "2024-01-15 10:30 AM";
+            record.age = "18";
+            record.bmi = "22.5";
+            record.bloodPressure = "120/80";
+            record.temperature = "36.5";
+            record.respiratoryRate = "16";
+            record.pulseRate = "72";
+            record.oxygenSaturation = "98%";
+            record.remarks = "General check-up, healthy condition";
+            consultationRecords.insert(record);
+
+        } catch (ListOverflowException e) {
+            System.err.println("Error initializing sample data: " + e.getMessage());
+        }
+    }
+
+    // Inner class for consultation records
+    public static class ConsultationRecord {
+        public String dateTime;
+        public String age;
+        public String bmi;
+        public String bloodPressure;
+        public String temperature;
+        public String respiratoryRate;
+        public String pulseRate;
+        public String oxygenSaturation;
+        public String remarks;
+
+        public ConsultationRecord() {
+            // Default constructor
+        }
+
+        public ConsultationRecord(String dateTime, String age, String bmi, String bloodPressure,
+                                  String temperature, String respiratoryRate, String pulseRate,
+                                  String oxygenSaturation, String remarks) {
+            this.dateTime = dateTime;
+            this.age = age;
+            this.bmi = bmi;
+            this.bloodPressure = bloodPressure;
+            this.temperature = temperature;
+            this.respiratoryRate = respiratoryRate;
+            this.pulseRate = pulseRate;
+            this.oxygenSaturation = oxygenSaturation;
+            this.remarks = remarks;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+
+            ConsultationRecord that = (ConsultationRecord) obj;
+            return dateTime != null ? dateTime.equals(that.dateTime) : that.dateTime == null;
+        }
+
+        @Override
+        public String toString() {
+            return dateTime + " - " + remarks;
+        }
+    }
+}
+
+// Updated Medical Record Panel Class using MyList
+class MedicalRecordPanel extends JPanel {
     private MedicalRecordData medicalData;
     private JPanel contentPanel;
     private CardLayout contentCardLayout;
@@ -160,7 +285,7 @@ public class MedicalRecordPanel extends JPanel {
         }
     }
 
-    // Helper method to create section headers
+    // Helper methods
     private JLabel createSectionHeader(String text) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Arial", Font.BOLD, 16));
@@ -169,7 +294,6 @@ public class MedicalRecordPanel extends JPanel {
         return label;
     }
 
-    // Helper method to create small buttons
     private JButton createSmallButton(String text, Color backgroundColor) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(60, 25));
@@ -181,8 +305,7 @@ public class MedicalRecordPanel extends JPanel {
         return button;
     }
 
-    // Helper method to create editable fields
-    private JPanel createEditableField(String label, String value, String section, String fieldName) {
+    private JPanel createEditableField(String label, String value, String fieldName) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
@@ -194,17 +317,12 @@ public class MedicalRecordPanel extends JPanel {
         JLabel valueComponent = new JLabel(value);
         valueComponent.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        buttonsPanel.setBackground(Color.WHITE);
-
         JButton editButton = createSmallButton("Edit", new Color(66, 153, 225));
         editButton.addActionListener(e -> editPersonalField(fieldName, value));
 
-        buttonsPanel.add(editButton);
-
         panel.add(labelComponent, BorderLayout.WEST);
         panel.add(valueComponent, BorderLayout.CENTER);
-        panel.add(buttonsPanel, BorderLayout.EAST);
+        panel.add(editButton, BorderLayout.EAST);
 
         return panel;
     }
@@ -227,22 +345,20 @@ public class MedicalRecordPanel extends JPanel {
         personalInfoView.removeAll();
 
         personalInfoView.add(createSectionHeader("PERSONAL INFORMATION"));
-
-        // Name fields
-        personalInfoView.add(createEditableField("Last Name", medicalData.lastName, "personal", "lastName"));
-        personalInfoView.add(createEditableField("First Name", medicalData.firstName, "personal", "firstName"));
-        personalInfoView.add(createEditableField("Middle Name", medicalData.middleName, "personal", "middleName"));
-        personalInfoView.add(createEditableField("Date of Birth", medicalData.dateOfBirth, "personal", "dateOfBirth"));
-        personalInfoView.add(createEditableField("Gender", medicalData.gender, "personal", "gender"));
-        personalInfoView.add(createEditableField("Address", medicalData.address, "personal", "address"));
-        personalInfoView.add(createEditableField("Contact Number", medicalData.contactNumber, "personal", "contactNumber"));
-        personalInfoView.add(createEditableField("Course/Year", medicalData.courseYear, "personal", "courseYear"));
+        personalInfoView.add(createEditableField("Last Name", medicalData.lastName, "lastName"));
+        personalInfoView.add(createEditableField("First Name", medicalData.firstName, "firstName"));
+        personalInfoView.add(createEditableField("Middle Name", medicalData.middleName, "middleName"));
+        personalInfoView.add(createEditableField("Date of Birth", medicalData.dateOfBirth, "dateOfBirth"));
+        personalInfoView.add(createEditableField("Gender", medicalData.gender, "gender"));
+        personalInfoView.add(createEditableField("Address", medicalData.address, "address"));
+        personalInfoView.add(createEditableField("Contact Number", medicalData.contactNumber, "contactNumber"));
+        personalInfoView.add(createEditableField("Course/Year", medicalData.courseYear, "courseYear"));
 
         personalInfoView.add(Box.createRigidArea(new Dimension(0, 20)));
         personalInfoView.add(createSectionHeader("PERSON TO CONTACT IN CASE OF EMERGENCY"));
-        personalInfoView.add(createEditableField("Emergency Contact Name", medicalData.emergencyName, "personal", "emergencyName"));
-        personalInfoView.add(createEditableField("Emergency Contact Address", medicalData.emergencyAddress, "personal", "emergencyAddress"));
-        personalInfoView.add(createEditableField("Emergency Contact Number", medicalData.emergencyContactNumber, "personal", "emergencyContactNumber"));
+        personalInfoView.add(createEditableField("Emergency Contact Name", medicalData.emergencyName, "emergencyName"));
+        personalInfoView.add(createEditableField("Emergency Contact Address", medicalData.emergencyAddress, "emergencyAddress"));
+        personalInfoView.add(createEditableField("Emergency Contact Number", medicalData.emergencyContactNumber, "emergencyContactNumber"));
 
         personalInfoView.revalidate();
         personalInfoView.repaint();
@@ -278,84 +394,56 @@ public class MedicalRecordPanel extends JPanel {
         allergiesView.setLayout(new BoxLayout(allergiesView, BoxLayout.Y_AXIS));
         allergiesView.setBackground(Color.WHITE);
         allergiesView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshAllergiesView();
-
-        JScrollPane scrollPane = new JScrollPane(allergiesView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(allergiesView);
     }
 
     private void refreshAllergiesView() {
         allergiesView.removeAll();
-
         allergiesView.add(createSectionHeader("ALLERGIES (Medication, food, and others)"));
 
-        // Add button
-        JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addButtonPanel.setBackground(Color.WHITE);
-        JButton addAllergyBtn = new JButton("Add Allergy");
-        addAllergyBtn.setBackground(new Color(72, 187, 120));
-        addAllergyBtn.setForeground(Color.WHITE);
-        addAllergyBtn.addActionListener(e -> addAllergy());
-        addButtonPanel.add(addAllergyBtn);
-        allergiesView.add(addButtonPanel);
+        JButton addBtn = new JButton("Add Allergy");
+        addBtn.setBackground(new Color(72, 187, 120));
+        addBtn.setForeground(Color.WHITE);
+        addBtn.addActionListener(e -> addAllergy());
+        allergiesView.add(addBtn);
 
         allergiesView.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Table headers
-        if (!medicalData.allergies.isEmpty()) {
-            JPanel headerPanel = new JPanel(new GridLayout(1, 3));
-            headerPanel.setBackground(new Color(230, 230, 230));
-            headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            JLabel allergyHeader = new JLabel("Allergies");
-            allergyHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            JLabel detailsHeader = new JLabel("Details");
-            detailsHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            JLabel actionsHeader = new JLabel("Actions");
-            actionsHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            headerPanel.add(allergyHeader);
-            headerPanel.add(detailsHeader);
-            headerPanel.add(actionsHeader);
-            allergiesView.add(headerPanel);
+        // Display allergies using MyMap
+        Object[] allergiesList = medicalData.allergies.entrySet();
+        if (allergiesList.length > 0) {
+            for (Object obj : allergiesList) {
+                if (obj instanceof KeyValuePair) {
+                    KeyValuePair entry = (KeyValuePair) obj;
+                    JPanel row = new JPanel(new BorderLayout());
+                    row.setBackground(Color.WHITE);
+                    row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-            // Allergy entries
-            for (Map.Entry<String, String> entry : medicalData.allergies.entrySet()) {
-                allergiesView.add(createAllergyRow(entry.getKey(), entry.getValue()));
+                    row.add(new JLabel(entry.getKey() + " - " + entry.getValue()), BorderLayout.CENTER);
+
+                    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                    buttonPanel.setBackground(Color.WHITE);
+
+                    JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
+                    JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
+
+                    editBtn.addActionListener(e -> editAllergy(entry.getKey(), entry.getValue()));
+                    deleteBtn.addActionListener(e -> deleteAllergy(entry.getKey()));
+
+                    buttonPanel.add(editBtn);
+                    buttonPanel.add(deleteBtn);
+                    row.add(buttonPanel, BorderLayout.EAST);
+
+                    allergiesView.add(row);
+                }
             }
         } else {
-            JLabel noDataLabel = new JLabel("No allergies recorded");
-            noDataLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-            noDataLabel.setForeground(Color.GRAY);
-            allergiesView.add(noDataLabel);
+            allergiesView.add(new JLabel("No allergies recorded"));
         }
 
         allergiesView.revalidate();
         allergiesView.repaint();
-    }
-
-    private JPanel createAllergyRow(String allergy, String details) {
-        JPanel row = new JPanel(new GridLayout(1, 3));
-        row.setBackground(Color.WHITE);
-        row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-        row.add(new JLabel(allergy));
-        row.add(new JLabel(details));
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setBackground(Color.WHITE);
-
-        JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
-        JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
-
-        editBtn.addActionListener(e -> editAllergy(allergy, details));
-        deleteBtn.addActionListener(e -> deleteAllergy(allergy));
-
-        buttonPanel.add(editBtn);
-        buttonPanel.add(deleteBtn);
-        row.add(buttonPanel);
-
-        return row;
     }
 
     private void addAllergy() {
@@ -390,9 +478,6 @@ public class MedicalRecordPanel extends JPanel {
                 medicalData.allergies.put(allergy, details);
                 refreshAllergiesView();
                 JOptionPane.showMessageDialog(this, "Allergy added successfully!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Please fill in both fields.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -426,87 +511,59 @@ public class MedicalRecordPanel extends JPanel {
         pastMedicalView.setLayout(new BoxLayout(pastMedicalView, BoxLayout.Y_AXIS));
         pastMedicalView.setBackground(Color.WHITE);
         pastMedicalView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshPastMedicalView();
-
-        JScrollPane scrollPane = new JScrollPane(pastMedicalView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(pastMedicalView);
     }
 
     private void refreshPastMedicalView() {
         pastMedicalView.removeAll();
-
         pastMedicalView.add(createSectionHeader("PAST MEDICAL HISTORY"));
         JLabel questionLabel = new JLabel("Do you have or have been treated for any sickness? Please SELECT");
         questionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
         pastMedicalView.add(questionLabel);
 
-        // Add button
-        JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addButtonPanel.setBackground(Color.WHITE);
-        JButton addSicknessBtn = new JButton("Add Medical History");
-        addSicknessBtn.setBackground(new Color(72, 187, 120));
-        addSicknessBtn.setForeground(Color.WHITE);
-        addSicknessBtn.addActionListener(e -> addMedicalHistory());
-        addButtonPanel.add(addSicknessBtn);
-        pastMedicalView.add(addButtonPanel);
+        JButton addBtn = new JButton("Add Medical History");
+        addBtn.setBackground(new Color(72, 187, 120));
+        addBtn.setForeground(Color.WHITE);
+        addBtn.addActionListener(e -> addMedicalHistory());
+        pastMedicalView.add(addBtn);
 
         pastMedicalView.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Table headers and entries
-        if (!medicalData.pastMedicalHistory.isEmpty()) {
-            JPanel headerPanel = new JPanel(new GridLayout(1, 3));
-            headerPanel.setBackground(new Color(230, 230, 230));
-            headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            JLabel sicknessHeader = new JLabel("Sickness");
-            sicknessHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            JLabel detailsHeader = new JLabel("Details");
-            detailsHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            JLabel actionsHeader = new JLabel("Actions");
-            actionsHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            headerPanel.add(sicknessHeader);
-            headerPanel.add(detailsHeader);
-            headerPanel.add(actionsHeader);
-            pastMedicalView.add(headerPanel);
+        // Display medical history using MyMap
+        Object[] historyList = medicalData.pastMedicalHistory.entrySet();
+        if (historyList.length > 0) {
+            for (Object obj : historyList) {
+                if (obj instanceof KeyValuePair) {
+                    KeyValuePair entry = (KeyValuePair) obj;
+                    JPanel row = new JPanel(new BorderLayout());
+                    row.setBackground(Color.WHITE);
+                    row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-            // Medical history entries
-            for (Map.Entry<String, String> entry : medicalData.pastMedicalHistory.entrySet()) {
-                pastMedicalView.add(createMedicalHistoryRow(entry.getKey(), entry.getValue()));
+                    row.add(new JLabel(entry.getKey() + " - " + entry.getValue()), BorderLayout.CENTER);
+
+                    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                    buttonPanel.setBackground(Color.WHITE);
+
+                    JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
+                    JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
+
+                    editBtn.addActionListener(e -> editMedicalHistory(entry.getKey(), entry.getValue()));
+                    deleteBtn.addActionListener(e -> deleteMedicalHistory(entry.getKey()));
+
+                    buttonPanel.add(editBtn);
+                    buttonPanel.add(deleteBtn);
+                    row.add(buttonPanel, BorderLayout.EAST);
+
+                    pastMedicalView.add(row);
+                }
             }
         } else {
-            JLabel noDataLabel = new JLabel("No past medical history recorded");
-            noDataLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-            noDataLabel.setForeground(Color.GRAY);
-            pastMedicalView.add(noDataLabel);
+            pastMedicalView.add(new JLabel("No past medical history recorded"));
         }
 
         pastMedicalView.revalidate();
         pastMedicalView.repaint();
-    }
-
-    private JPanel createMedicalHistoryRow(String sickness, String details) {
-        JPanel row = new JPanel(new GridLayout(1, 3));
-        row.setBackground(Color.WHITE);
-        row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-        row.add(new JLabel(sickness));
-        row.add(new JLabel(details));
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setBackground(Color.WHITE);
-
-        JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
-        JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
-
-        editBtn.addActionListener(e -> editMedicalHistory(sickness, details));
-        deleteBtn.addActionListener(e -> deleteMedicalHistory(sickness));
-
-        buttonPanel.add(editBtn);
-        buttonPanel.add(deleteBtn);
-        row.add(buttonPanel);
-
-        return row;
     }
 
     private void addMedicalHistory() {
@@ -541,9 +598,6 @@ public class MedicalRecordPanel extends JPanel {
                 medicalData.pastMedicalHistory.put(sickness, details);
                 refreshPastMedicalView();
                 JOptionPane.showMessageDialog(this, "Medical history added successfully!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Please fill in both fields.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -577,84 +631,76 @@ public class MedicalRecordPanel extends JPanel {
         childhoodDiseasesView.setLayout(new BoxLayout(childhoodDiseasesView, BoxLayout.Y_AXIS));
         childhoodDiseasesView.setBackground(Color.WHITE);
         childhoodDiseasesView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshChildhoodDiseasesView();
-
-        JScrollPane scrollPane = new JScrollPane(childhoodDiseasesView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(childhoodDiseasesView);
     }
 
     private void refreshChildhoodDiseasesView() {
         childhoodDiseasesView.removeAll();
-
         childhoodDiseasesView.add(createSectionHeader("CHILDHOOD DISEASES"));
 
-        // Add button
-        JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addButtonPanel.setBackground(Color.WHITE);
-        JButton addDiseaseBtn = new JButton("Add Childhood Disease");
-        addDiseaseBtn.setBackground(new Color(72, 187, 120));
-        addDiseaseBtn.setForeground(Color.WHITE);
-        addDiseaseBtn.addActionListener(e -> addChildhoodDisease());
-        addButtonPanel.add(addDiseaseBtn);
-        childhoodDiseasesView.add(addButtonPanel);
+        JButton addBtn = new JButton("Add Childhood Disease");
+        addBtn.setBackground(new Color(72, 187, 120));
+        addBtn.setForeground(Color.WHITE);
+        addBtn.addActionListener(e -> addChildhoodDisease());
+        childhoodDiseasesView.add(addBtn);
 
         childhoodDiseasesView.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Disease entries
-        if (!medicalData.childhoodDiseases.isEmpty()) {
-            for (String disease : medicalData.childhoodDiseases) {
-                childhoodDiseasesView.add(createChildhoodDiseaseRow(disease));
+        // Display childhood diseases using MyLinkedList
+        if (medicalData.childhoodDiseases.getSize() > 0) {
+            Object[] diseaseArray = medicalData.childhoodDiseases.toArray();
+            for (Object obj : diseaseArray) {
+                if (obj instanceof String) {
+                    String disease = (String) obj;
+                    JPanel row = new JPanel(new BorderLayout());
+                    row.setBackground(Color.WHITE);
+                    row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+                    row.add(new JLabel("• " + disease), BorderLayout.CENTER);
+
+                    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                    buttonPanel.setBackground(Color.WHITE);
+
+                    JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
+                    JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
+
+                    editBtn.addActionListener(e -> editChildhoodDisease(disease));
+                    deleteBtn.addActionListener(e -> deleteChildhoodDisease(disease));
+
+                    buttonPanel.add(editBtn);
+                    buttonPanel.add(deleteBtn);
+                    row.add(buttonPanel, BorderLayout.EAST);
+
+                    childhoodDiseasesView.add(row);
+                }
             }
         } else {
-            JLabel noDataLabel = new JLabel("No childhood diseases recorded");
-            noDataLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-            noDataLabel.setForeground(Color.GRAY);
-            childhoodDiseasesView.add(noDataLabel);
+            childhoodDiseasesView.add(new JLabel("No childhood diseases recorded"));
         }
 
         childhoodDiseasesView.revalidate();
         childhoodDiseasesView.repaint();
     }
 
-    private JPanel createChildhoodDiseaseRow(String disease) {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setBackground(Color.WHITE);
-        row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-        JLabel diseaseLabel = new JLabel(disease);
-        diseaseLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        row.add(diseaseLabel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(Color.WHITE);
-
-        JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
-        JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
-
-        editBtn.addActionListener(e -> editChildhoodDisease(disease));
-        deleteBtn.addActionListener(e -> deleteChildhoodDisease(disease));
-
-        buttonPanel.add(editBtn);
-        buttonPanel.add(deleteBtn);
-        row.add(buttonPanel, BorderLayout.EAST);
-
-        return row;
-    }
-
     private void addChildhoodDisease() {
         String disease = JOptionPane.showInputDialog(this, "Enter childhood disease:");
 
         if (disease != null && !disease.trim().isEmpty()) {
-            disease = disease.trim();
-            if (!medicalData.childhoodDiseases.contains(disease)) {
-                medicalData.childhoodDiseases.add(disease);
-                refreshChildhoodDiseasesView();
-                JOptionPane.showMessageDialog(this, "Childhood disease added successfully!");
-            } else {
-                JOptionPane.showMessageDialog(this, "This disease is already in the list.",
-                        "Duplicate Entry", JOptionPane.WARNING_MESSAGE);
+            try {
+                disease = disease.trim();
+                // Check if disease already exists
+                if (medicalData.childhoodDiseases.search(disease) == -1) {
+                    medicalData.childhoodDiseases.insert(disease);
+                    refreshChildhoodDiseasesView();
+                    JOptionPane.showMessageDialog(this, "Childhood disease added successfully!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "This disease is already in the list.",
+                            "Duplicate Entry", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (ListOverflowException e) {
+                JOptionPane.showMessageDialog(this, "Cannot add more diseases: " + e.getMessage(),
+                        "List Full", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -665,11 +711,15 @@ public class MedicalRecordPanel extends JPanel {
 
         if (newDisease != null && !newDisease.trim().isEmpty()) {
             newDisease = newDisease.trim();
-            int index = medicalData.childhoodDiseases.indexOf(oldDisease);
-            if (index != -1) {
-                medicalData.childhoodDiseases.set(index, newDisease);
-                refreshChildhoodDiseasesView();
-                JOptionPane.showMessageDialog(this, "Childhood disease updated successfully!");
+            try {
+                if (medicalData.childhoodDiseases.delete(oldDisease)) {
+                    medicalData.childhoodDiseases.insert(newDisease);
+                    refreshChildhoodDiseasesView();
+                    JOptionPane.showMessageDialog(this, "Childhood disease updated successfully!");
+                }
+            } catch (ListOverflowException e) {
+                JOptionPane.showMessageDialog(this, "Error updating disease: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -680,9 +730,10 @@ public class MedicalRecordPanel extends JPanel {
                 "Confirm Delete", JOptionPane.YES_NO_OPTION);
 
         if (result == JOptionPane.YES_OPTION) {
-            medicalData.childhoodDiseases.remove(disease);
-            refreshChildhoodDiseasesView();
-            JOptionPane.showMessageDialog(this, "Childhood disease deleted successfully!");
+            if (medicalData.childhoodDiseases.delete(disease)) {
+                refreshChildhoodDiseasesView();
+                JOptionPane.showMessageDialog(this, "Childhood disease deleted successfully!");
+            }
         }
     }
 
@@ -692,17 +743,12 @@ public class MedicalRecordPanel extends JPanel {
         personalSocialView.setLayout(new BoxLayout(personalSocialView, BoxLayout.Y_AXIS));
         personalSocialView.setBackground(Color.WHITE);
         personalSocialView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshPersonalSocialView();
-
-        JScrollPane scrollPane = new JScrollPane(personalSocialView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(personalSocialView);
     }
 
     private void refreshPersonalSocialView() {
         personalSocialView.removeAll();
-
         personalSocialView.add(createSectionHeader("PERSONAL/SOCIAL HISTORY"));
 
         // Smoking section
@@ -727,7 +773,6 @@ public class MedicalRecordPanel extends JPanel {
         smokingPanel.add(updateSmokingBtn);
 
         personalSocialView.add(smokingPanel);
-
         personalSocialView.add(Box.createRigidArea(new Dimension(0, 10)));
 
         // Drinking section
@@ -758,84 +803,56 @@ public class MedicalRecordPanel extends JPanel {
         immunizationView.setLayout(new BoxLayout(immunizationView, BoxLayout.Y_AXIS));
         immunizationView.setBackground(Color.WHITE);
         immunizationView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshImmunizationView();
-
-        JScrollPane scrollPane = new JScrollPane(immunizationView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(immunizationView);
     }
 
     private void refreshImmunizationView() {
         immunizationView.removeAll();
-
         immunizationView.add(createSectionHeader("IMMUNIZATIONS"));
 
-        // Add button
-        JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addButtonPanel.setBackground(Color.WHITE);
-        JButton addImmunizationBtn = new JButton("Add Immunization");
-        addImmunizationBtn.setBackground(new Color(72, 187, 120));
-        addImmunizationBtn.setForeground(Color.WHITE);
-        addImmunizationBtn.addActionListener(e -> addImmunization());
-        addButtonPanel.add(addImmunizationBtn);
-        immunizationView.add(addButtonPanel);
+        JButton addBtn = new JButton("Add Immunization");
+        addBtn.setBackground(new Color(72, 187, 120));
+        addBtn.setForeground(Color.WHITE);
+        addBtn.addActionListener(e -> addImmunization());
+        immunizationView.add(addBtn);
 
         immunizationView.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Table headers and entries
-        if (!medicalData.immunizations.isEmpty()) {
-            JPanel headerPanel = new JPanel(new GridLayout(1, 3));
-            headerPanel.setBackground(new Color(230, 230, 230));
-            headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            JLabel immunizationHeader = new JLabel("Immunizations");
-            immunizationHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            JLabel dateHeader = new JLabel("Date");
-            dateHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            JLabel actionsHeader = new JLabel("Actions");
-            actionsHeader.setFont(new Font("Arial", Font.BOLD, 12));
-            headerPanel.add(immunizationHeader);
-            headerPanel.add(dateHeader);
-            headerPanel.add(actionsHeader);
-            immunizationView.add(headerPanel);
+        // Display immunizations using MyMap
+        Object[] immunizationList = medicalData.immunizations.entrySet();
+        if (immunizationList.length > 0) {
+            for (Object obj : immunizationList) {
+                if (obj instanceof KeyValuePair) {
+                    KeyValuePair entry = (KeyValuePair) obj;
+                    JPanel row = new JPanel(new BorderLayout());
+                    row.setBackground(Color.WHITE);
+                    row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-            // Immunization entries
-            for (Map.Entry<String, String> entry : medicalData.immunizations.entrySet()) {
-                immunizationView.add(createImmunizationRow(entry.getKey(), entry.getValue()));
+                    row.add(new JLabel(entry.getKey() + " - " + entry.getValue()), BorderLayout.CENTER);
+
+                    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                    buttonPanel.setBackground(Color.WHITE);
+
+                    JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
+                    JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
+
+                    editBtn.addActionListener(e -> editImmunization(entry.getKey(), entry.getValue()));
+                    deleteBtn.addActionListener(e -> deleteImmunization(entry.getKey()));
+
+                    buttonPanel.add(editBtn);
+                    buttonPanel.add(deleteBtn);
+                    row.add(buttonPanel, BorderLayout.EAST);
+
+                    immunizationView.add(row);
+                }
             }
         } else {
-            JLabel noDataLabel = new JLabel("No immunizations recorded");
-            noDataLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-            noDataLabel.setForeground(Color.GRAY);
-            immunizationView.add(noDataLabel);
+            immunizationView.add(new JLabel("No immunizations recorded"));
         }
 
         immunizationView.revalidate();
         immunizationView.repaint();
-    }
-
-    private JPanel createImmunizationRow(String immunization, String date) {
-        JPanel row = new JPanel(new GridLayout(1, 3));
-        row.setBackground(Color.WHITE);
-        row.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-        row.add(new JLabel(immunization));
-        row.add(new JLabel(date));
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setBackground(Color.WHITE);
-
-        JButton editBtn = createSmallButton("Edit", new Color(66, 153, 225));
-        JButton deleteBtn = createSmallButton("Delete", new Color(245, 101, 101));
-
-        editBtn.addActionListener(e -> editImmunization(immunization, date));
-        deleteBtn.addActionListener(e -> deleteImmunization(immunization));
-
-        buttonPanel.add(editBtn);
-        buttonPanel.add(deleteBtn);
-        row.add(buttonPanel);
-
-        return row;
     }
 
     private void addImmunization() {
@@ -870,9 +887,6 @@ public class MedicalRecordPanel extends JPanel {
                 medicalData.immunizations.put(immunization, date);
                 refreshImmunizationView();
                 JOptionPane.showMessageDialog(this, "Immunization added successfully!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Please fill in both fields.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -906,17 +920,12 @@ public class MedicalRecordPanel extends JPanel {
         othersView.setLayout(new BoxLayout(othersView, BoxLayout.Y_AXIS));
         othersView.setBackground(Color.WHITE);
         othersView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshOthersView();
-
-        JScrollPane scrollPane = new JScrollPane(othersView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(othersView);
     }
 
     private void refreshOthersView() {
         othersView.removeAll();
-
         othersView.add(createSectionHeader("OTHERS"));
 
         // Special medications
@@ -974,32 +983,23 @@ public class MedicalRecordPanel extends JPanel {
         consultationView.setLayout(new BoxLayout(consultationView, BoxLayout.Y_AXIS));
         consultationView.setBackground(Color.WHITE);
         consultationView.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
         refreshConsultationView();
-
-        JScrollPane scrollPane = new JScrollPane(consultationView);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        return scrollPane;
+        return new JScrollPane(consultationView);
     }
 
     private void refreshConsultationView() {
         consultationView.removeAll();
-
         consultationView.add(createSectionHeader("CONSULTATION RECORD"));
 
-        // Add button
-        JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addButtonPanel.setBackground(Color.WHITE);
-        JButton addConsultationBtn = new JButton("Add Consultation Record");
-        addConsultationBtn.setBackground(new Color(72, 187, 120));
-        addConsultationBtn.setForeground(Color.WHITE);
-        addConsultationBtn.addActionListener(e -> addConsultationRecord());
-        addButtonPanel.add(addConsultationBtn);
-        consultationView.add(addButtonPanel);
+        JButton addBtn = new JButton("Add Consultation Record");
+        addBtn.setBackground(new Color(72, 187, 120));
+        addBtn.setForeground(Color.WHITE);
+        addBtn.addActionListener(e -> addConsultationRecord());
+        consultationView.add(addBtn);
 
         consultationView.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Create table for consultation records
+        // Create table for consultation records using MyLinkedList
         String[] columnNames = {"Date/Time", "Age", "BMI", "BP", "TEMP", "RR", "PR", "SPO2", "Remarks", "Actions"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -1008,15 +1008,18 @@ public class MedicalRecordPanel extends JPanel {
             }
         };
 
-        // Add consultation records to table
-        for (int i = 0; i < medicalData.consultationRecords.size(); i++) {
-            MedicalRecordData.ConsultationRecord record = medicalData.consultationRecords.get(i);
-            Object[] rowData = {
-                    record.dateTime, record.age, record.bmi, record.bloodPressure,
-                    record.temperature, record.respiratoryRate, record.pulseRate,
-                    record.oxygenSaturation, record.remarks, "Edit | Delete"
-            };
-            tableModel.addRow(rowData);
+        // Add consultation records to table using MyLinkedList
+        Object[] recordsArray = medicalData.consultationRecords.toArray();
+        for (int i = 0; i < recordsArray.length; i++) {
+            if (recordsArray[i] instanceof MedicalRecordData.ConsultationRecord) {
+                MedicalRecordData.ConsultationRecord record = (MedicalRecordData.ConsultationRecord) recordsArray[i];
+                Object[] rowData = {
+                        record.dateTime, record.age, record.bmi, record.bloodPressure,
+                        record.temperature, record.respiratoryRate, record.pulseRate,
+                        record.oxygenSaturation, record.remarks, "Edit | Delete"
+                };
+                tableModel.addRow(rowData);
+            }
         }
 
         JTable consultationTable = new JTable(tableModel);
@@ -1039,7 +1042,7 @@ public class MedicalRecordPanel extends JPanel {
         tableScrollPane.setPreferredSize(new Dimension(800, 200));
         consultationView.add(tableScrollPane);
 
-        if (medicalData.consultationRecords.isEmpty()) {
+        if (medicalData.consultationRecords.getSize() == 0) {
             JLabel noDataLabel = new JLabel("No consultation records found");
             noDataLabel.setFont(new Font("Arial", Font.ITALIC, 12));
             noDataLabel.setForeground(Color.GRAY);
@@ -1077,37 +1080,173 @@ public class MedicalRecordPanel extends JPanel {
         dialog.setVisible(true);
 
         if (dialog.getResult() != null) {
-            medicalData.consultationRecords.add(dialog.getResult());
-            refreshConsultationView();
-            JOptionPane.showMessageDialog(this, "Consultation record added successfully!");
+            try {
+                medicalData.consultationRecords.insert(dialog.getResult());
+                refreshConsultationView();
+                JOptionPane.showMessageDialog(this, "Consultation record added successfully!");
+            } catch (ListOverflowException e) {
+                JOptionPane.showMessageDialog(this, "Cannot add more consultation records: " + e.getMessage(),
+                        "List Full", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void editConsultationRecord(int index) {
-        if (index >= 0 && index < medicalData.consultationRecords.size()) {
-            MedicalRecordData.ConsultationRecord record = medicalData.consultationRecords.get(index);
-            ConsultationRecordDialog dialog = new ConsultationRecordDialog(null, record);
-            dialog.setVisible(true);
+        try {
+            if (index >= 0 && index < medicalData.consultationRecords.getSize()) {
+                MedicalRecordData.ConsultationRecord record = medicalData.consultationRecords.getElementAt(index);
+                ConsultationRecordDialog dialog = new ConsultationRecordDialog(null, record);
+                dialog.setVisible(true);
 
-            if (dialog.getResult() != null) {
-                medicalData.consultationRecords.set(index, dialog.getResult());
-                refreshConsultationView();
-                JOptionPane.showMessageDialog(this, "Consultation record updated successfully!");
+                if (dialog.getResult() != null) {
+                    // Remove old record and add updated one
+                    medicalData.consultationRecords.delete(record);
+                    medicalData.consultationRecords.insert(dialog.getResult());
+                    refreshConsultationView();
+                    JOptionPane.showMessageDialog(this, "Consultation record updated successfully!");
+                }
             }
+        } catch (IndexOutOfBoundsException e) {
+            JOptionPane.showMessageDialog(this, "Invalid record index: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (ListOverflowException e) {
+            JOptionPane.showMessageDialog(this, "Error updating record: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void deleteConsultationRecord(int index) {
-        if (index >= 0 && index < medicalData.consultationRecords.size()) {
-            int result = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to delete this consultation record?",
-                    "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        try {
+            if (index >= 0 && index < medicalData.consultationRecords.getSize()) {
+                int result = JOptionPane.showConfirmDialog(this,
+                        "Are you sure you want to delete this consultation record?",
+                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
 
-            if (result == JOptionPane.YES_OPTION) {
-                medicalData.consultationRecords.remove(index);
-                refreshConsultationView();
-                JOptionPane.showMessageDialog(this, "Consultation record deleted successfully!");
+                if (result == JOptionPane.YES_OPTION) {
+                    MedicalRecordData.ConsultationRecord record = medicalData.consultationRecords.getElementAt(index);
+                    medicalData.consultationRecords.delete(record);
+                    refreshConsultationView();
+                    JOptionPane.showMessageDialog(this, "Consultation record deleted successfully!");
+                }
             }
+        } catch (IndexOutOfBoundsException e) {
+            JOptionPane.showMessageDialog(this, "Invalid record index: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+}
+
+// Consultation Record Dialog for adding/editing consultation records (unchanged from previous version)
+class ConsultationRecordDialog extends JDialog {
+    private JTextField dateTimeField, ageField, bmiField, bpField;
+    private JTextField tempField, rrField, prField, spo2Field, remarksField;
+    private MedicalRecordData.ConsultationRecord result;
+    private boolean cancelled = true;
+
+    public ConsultationRecordDialog(JFrame parent, MedicalRecordData.ConsultationRecord record) {
+        super(parent, record == null ? "Add Consultation Record" : "Edit Consultation Record", true);
+        initializeDialog(record);
+    }
+
+    private void initializeDialog(MedicalRecordData.ConsultationRecord record) {
+        setLayout(new BorderLayout());
+        setSize(500, 400);
+        setLocationRelativeTo(getParent());
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Initialize fields
+        dateTimeField = new JTextField(20);
+        ageField = new JTextField(10);
+        bmiField = new JTextField(10);
+        bpField = new JTextField(10);
+        tempField = new JTextField(10);
+        rrField = new JTextField(10);
+        prField = new JTextField(10);
+        spo2Field = new JTextField(10);
+        remarksField = new JTextField(30);
+
+        // Populate fields if editing
+        if (record != null) {
+            dateTimeField.setText(record.dateTime);
+            ageField.setText(record.age);
+            bmiField.setText(record.bmi);
+            bpField.setText(record.bloodPressure);
+            tempField.setText(record.temperature);
+            rrField.setText(record.respiratoryRate);
+            prField.setText(record.pulseRate);
+            spo2Field.setText(record.oxygenSaturation);
+            remarksField.setText(record.remarks);
+        }
+
+        // Add form fields
+        int row = 0;
+        addFormField(formPanel, gbc, "Date/Time:", dateTimeField, row++);
+        addFormField(formPanel, gbc, "Age:", ageField, row++);
+        addFormField(formPanel, gbc, "BMI:", bmiField, row++);
+        addFormField(formPanel, gbc, "Blood Pressure:", bpField, row++);
+        addFormField(formPanel, gbc, "Temperature:", tempField, row++);
+        addFormField(formPanel, gbc, "Respiratory Rate:", rrField, row++);
+        addFormField(formPanel, gbc, "Pulse Rate:", prField, row++);
+        addFormField(formPanel, gbc, "SPO2:", spo2Field, row++);
+        addFormField(formPanel, gbc, "Remarks:", remarksField, row++);
+
+        add(formPanel, BorderLayout.CENTER);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+
+        saveButton.addActionListener(e -> {
+            if (validateFields()) {
+                result = new MedicalRecordData.ConsultationRecord(
+                        dateTimeField.getText().trim(),
+                        ageField.getText().trim(),
+                        bmiField.getText().trim(),
+                        bpField.getText().trim(),
+                        tempField.getText().trim(),
+                        rrField.getText().trim(),
+                        prField.getText().trim(),
+                        spo2Field.getText().trim(),
+                        remarksField.getText().trim()
+                );
+                cancelled = false;
+                dispose();
+            }
+        });
+
+        cancelButton.addActionListener(e -> {
+            cancelled = true;
+            dispose();
+        });
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private void addFormField(JPanel panel, GridBagConstraints gbc, String label, JTextField field, int row) {
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        panel.add(new JLabel(label), gbc);
+
+        gbc.gridx = 1;
+        panel.add(field, gbc);
+    }
+
+    private boolean validateFields() {
+        if (dateTimeField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter date/time.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    public MedicalRecordData.ConsultationRecord getResult() {
+        return cancelled ? null : result;
     }
 }
